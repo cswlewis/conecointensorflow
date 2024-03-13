@@ -1,0 +1,77 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>90c8924c-824e-4b7f-a3a6-9c8baaca5dc2</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>ConeCoinTensorFlowPython.py</StartupFile>
+    <SearchPath>
+    </SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <Name>ConeCoinTensorFlowPython</Name>
+    <RootNamespace>ConeCoinTensorFlowPython</RootNamespace>
+    <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="app.py" />
+    <Compile Include="ConeCoinTensorFlowPython15s.py" />
+    <Compile Include="ConeCoinTensorFlowPython.py" />
+    <Compile Include="Create15sTicks.py" />
+    <Compile Include="F1ScoreCallback.py" />
+    <Compile Include="gather_and_save_data.py" />
+    <Compile Include="ProfitCallback.py" />
+    <Compile Include="Tick.py" />
+    <Compile Include="TickerData1s.py" />
+    <Compile Include="TickerData.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="saved_model\" />
+    <Folder Include="saved_model\assets\" />
+    <Folder Include="saved_model\variables\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="saved_model\fingerprint.pb" />
+    <Content Include="saved_model\keras_metadata.pb" />
+    <Content Include="saved_model\saved_model.pb" />
+    <Content Include="saved_model\variables\variables.data-00000-of-00001" />
+    <Content Include="saved_model\variables\variables.index" />
+  </ItemGroup>
+  <ItemGroup>
+    <Interpreter Include="..\ConeCoinTensorFlowPython\env\">
+      <Id>env</Id>
+      <Version>3.10</Version>
+      <Description>env (Python 3.10 (64-bit))</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
+    </Interpreter>
+    <Interpreter Include="tf-gpu\">
+      <Id>tf-gpu</Id>
+      <Version>3.10</Version>
+      <Description>tf-gpu (Python 3.10 (64-bit))</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
+    </Interpreter>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+  <!-- Uncomment the CoreCompile target to enable the Build command in
+       Visual Studio and specify your pre- and post-build commands in
+       the BeforeBuild and AfterBuild targets below. -->
+  <!--<Target Name="CoreCompile" />-->
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+</Project>
