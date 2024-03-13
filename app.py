@@ -108,7 +108,7 @@ def predict():
     return jsonify(bool(shouldBuy[0] > 0.5))
 
 if __name__ == '__main__':
-    app.run(debug=False, port=3000)
+    app.run(debug=False, host="0.0.0.0", port=3000)
 
 
 
