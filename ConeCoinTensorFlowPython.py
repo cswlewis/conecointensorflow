@@ -5,24 +5,23 @@ import numpy as np
 import pandas as pd
 from TickerData import *
 import os
-from numba import cuda 
+# from numba import cuda 
 from tensorflow.keras.callbacks import LearningRateScheduler
 
-device = cuda.get_current_device()
-device.reset()
+# device = cuda.get_current_device()
+# device.reset()
 
 # set the GPU device
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
+# os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+# os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 import tensorflow as tf
-
 def gather_and_save_data():
     # Load and prepare the testing data
     df = TickerData().df
 
     df2 = pd.DataFrame()
 
-    columns_to_normalize = [ 'volume_adi', 'volume_obv', 'volume_cmf', 'volume_fi', 'volume_em',
+    columns_to_normalize = [ 'volume_obv', 'volume_cmf', 'volume_fi', 'volume_em',
        'volume_sma_em', 'volume_vpt', 'volume_vwap', 'volume_mfi',
        'volume_nvi', 'volatility_bbm', 'volatility_bbh', 'volatility_bbl',
        'volatility_bbw', 'volatility_bbp', 'volatility_bbhi',
@@ -57,22 +56,22 @@ def gather_and_save_data():
     dataLength = df[columns_to_normalize].shape[0]
     df[columns_to_normalize] = df[columns_to_normalize].astype(np.float32)
     close_values = df["Close"]
-    for i in range(lookbacks+minutesToDecideOver+1000, df[columns_to_normalize].shape[0]-lookbacks-minutesToDecideOver-1000):
-        df3 = df[columns_to_normalize].iloc[i-lookbacks-1000:i].values
+    for i in range(lookbacks+minutesToDecideOver+1000, df[columns_to_normalize].shape[0]-lookbacks-minutesToDecideOver):
+        df3 = df[columns_to_normalize].iloc[i-lookbacks-1000:i]
 
         if(i % 200 == 0 or i ==lookbacks+minutesToDecideOver+1000):
             print(i/dataLength*100)
             
-        X[i-1] = (df3[1000:] - df3.mean()) / df3.std()
+        X[i] = (df3[columns_to_normalize].iloc[1000:] - df3[columns_to_normalize].mean()) / df3[columns_to_normalize].std()
         
         if(close_values[i: (i-1)+minutesToDecideOver].sum()  > (close_values[i-minutesToDecideOver:i-1]).sum()):
-            y[i-1] = True
+            y[i] = True
         else: 
-            y[i-1]= False
+            y[i]= False
             
     # Save X and y to CSV files
-    np.savetxt('X_data_full50-1.csv', X.reshape((X.shape[0], -1)), delimiter=',')
-    np.savetxt('y_data_full50-1.csv', y, delimiter=',')
+    np.savetxt('X_data_full50-newest.csv', X.reshape((X.shape[0], -1)), delimiter=',')
+    np.savetxt('y_data_full50-newest.csv', y, delimiter=',')
 
 def lr_schedule(epoch):
     initial_lr = 0.0005
@@ -86,7 +85,13 @@ def main():
     #tf.debugging.set_log_device_placement(True)
     # Load and prepare the testing data
     # df = TickerData().df
-    # gather_and_save_data()
+
+
+
+    gather_and_save_data()
+    
+
+
     # df2 = pd.DataFrame()
     # print(df.columns)
     # df2.insert(loc = 0, column="Low", value=df["Low"])
@@ -123,7 +128,7 @@ def main():
     # df2.insert(loc = 8, column="momentum_rsi", value=df["Close"].shift(1))
     # df2.insert(loc = 9, column="trend_macd_diff", value=df["Volume_BTC"].shift(1))
 
-    columns_to_normalize = [ 'volume_adi', 'volume_obv', 'volume_cmf', 'volume_fi', 'volume_em',
+    columns_to_normalize = [ 'volume_obv', 'volume_cmf', 'volume_fi', 'volume_em',
        'volume_sma_em', 'volume_vpt', 'volume_vwap', 'volume_mfi',
        'volume_nvi', 'volatility_bbm', 'volatility_bbh', 'volatility_bbl',
        'volatility_bbw', 'volatility_bbp', 'volatility_bbhi',
@@ -222,10 +227,10 @@ def main():
     # cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dropout(0.7))(cnn_layer)
     # cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Flatten())(inputs)
     # Apply SimpleRNN
-    rnn_layer = tf.keras.layers.SimpleRNN(64, activation='relu', return_sequences=True)(inputs)
+    rnn_layer = tf.keras.layers.SimpleRNN(32, activation='relu', return_sequences=True)(inputs)
     rnn_layer = tf.keras.layers.Dropout(0.5)(rnn_layer)
     
-    rnn_layer = tf.keras.layers.SimpleRNN(32, activation='relu', return_sequences=False)(rnn_layer)
+    rnn_layer = tf.keras.layers.SimpleRNN(16, activation='relu', return_sequences=False)(rnn_layer)
     rnn_layer = tf.keras.layers.Dropout(0.5)(rnn_layer)    
 
     # rnn_layer = tf.keras.layers.SimpleRNN(8, activation='relu', return_sequences=True)(rnn_layer)
@@ -316,9 +321,9 @@ def main():
             use_multiprocessing = True
         )
         # model.load_weights(path_checkpoint)
-        model.save('model-gpu-rnn-1m-mse-fulldata')
+        model.save('model-gpu-rnn-1m-huh')
         
-        test_loss,  test_accuracy, blah, blah23 = model.evaluate(test_data_x, test_data_y)
+        test_loss,  test_accuracy, blah, month = model.evaluate(test_data_x, test_data_y)
         print(f"Test loss: {test_loss:.4f}, Test accuracy: {test_accuracy:.4f}")
     
     

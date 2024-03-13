@@ -4,14 +4,14 @@ class TickerData:
     def __init__(self):
         # all_files = ["c:/Projects/ConeCoin.Tensorflow/BTCFDUSD-1s-2024-01.csv"]
         all_files = [
-                         # "c:/Projects/ConeCoin.Tensorflow/BTCBUSD-1m-2022-10.csv",
-                         # "c:/Projects/ConeCoin.Tensorflow/BTCBUSD-1m-2022-11.csv",
-                         # "c:/Projects/ConeCoin.Tensorflow/BTCBUSD-1m-2022-12.csv",
-                         # "c:/Projects/ConeCoin.Tensorflow/BTCBUSD-1m-2023-01.csv",
-                         # "c:/Projects/ConeCoin.Tensorflow/BTCBUSD-1m-2023-02.csv",
-                         # "c:/Projects/ConeCoin.Tensorflow/BTCTUSD-1m-2023-03.csv",
-                         # "c:/Projects/ConeCoin.Tensorflow/BTCTUSD-1m-2023-04.csv",
-                         # "c:/Projects/ConeCoin.Tensorflow/BTCTUSD-1m-2023-05.csv",
+                         "c:/Projects/ConeCoin.Tensorflow/BTCBUSD-1m-2022-10.csv",
+                         "c:/Projects/ConeCoin.Tensorflow/BTCBUSD-1m-2022-11.csv",
+                         "c:/Projects/ConeCoin.Tensorflow/BTCBUSD-1m-2022-12.csv",
+                         "c:/Projects/ConeCoin.Tensorflow/BTCBUSD-1m-2023-01.csv",
+                         "c:/Projects/ConeCoin.Tensorflow/BTCBUSD-1m-2023-02.csv",
+                         "c:/Projects/ConeCoin.Tensorflow/BTCTUSD-1m-2023-03.csv",
+                         "c:/Projects/ConeCoin.Tensorflow/BTCTUSD-1m-2023-04.csv",
+                         "c:/Projects/ConeCoin.Tensorflow/BTCTUSD-1m-2023-05.csv",
                          "c:/Projects/ConeCoin.Tensorflow/BTCTUSD-1m-2023-06.csv",
                          "c:/Projects/ConeCoin.Tensorflow/BTCTUSD-1m-2023-07.csv",
                          "c:/Projects/ConeCoin.Tensorflow/BTCFDUSD-1m-2023-08.csv",
