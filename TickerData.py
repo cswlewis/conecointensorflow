@@ -4,22 +4,22 @@ class TickerData:
     def __init__(self):
         # all_files = ["c:/Projects/ConeCoin.Tensorflow/BTCFDUSD-1s-2024-01.csv"]
         all_files = [
-                         "BTCBUSD-1m-2022-10.csv",
-                         "BTCBUSD-1m-2022-11.csv",
-                         "BTCBUSD-1m-2022-12.csv",
-                         "BTCBUSD-1m-2023-01.csv",
-                         "BTCBUSD-1m-2023-02.csv",
-                         "BTCTUSD-1m-2023-03.csv",
-                         "BTCTUSD-1m-2023-04.csv",
-                         "BTCTUSD-1m-2023-05.csv",
-                         "BTCTUSD-1m-2023-06.csv",
-                         "BTCTUSD-1m-2023-07.csv",
-                         "BTCFDUSD-1m-2023-08.csv",
-                         "BTCFDUSD-1m-2023-09.csv",
-                         "BTCFDUSD-1m-2023-10.csv",
-                         "BTCFDUSD-1m-2023-11.csv",
-                         "BTCFDUSD-1m-2023-12.csv",
-                         "BTCFDUSD-1m-2024-01.csv"
+                         "./BTCBUSD-1m-2022-10.csv",
+                         "./BTCBUSD-1m-2022-11.csv",
+                         "./BTCBUSD-1m-2022-12.csv",
+                         "./BTCBUSD-1m-2023-01.csv",
+                         "./BTCBUSD-1m-2023-02.csv",
+                         "./BTCTUSD-1m-2023-03.csv",
+                         "./BTCTUSD-1m-2023-04.csv",
+                         "./BTCTUSD-1m-2023-05.csv",
+                         "./BTCTUSD-1m-2023-06.csv",
+                         "./BTCTUSD-1m-2023-07.csv",
+                         "./BTCFDUSD-1m-2023-08.csv",
+                         "./BTCFDUSD-1m-2023-09.csv",
+                         "./BTCFDUSD-1m-2023-10.csv",
+                         "./BTCFDUSD-1m-2023-11.csv",
+                         "./BTCFDUSD-1m-2023-12.csv",
+                         "./BTCFDUSD-1m-2024-01.csv"
                          ] #last file includes 02/03/04 of 2023
 
 
