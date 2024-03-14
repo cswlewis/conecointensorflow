@@ -56,7 +56,7 @@ def predict():
        'momentum_pvo_hist', 'momentum_kama', 'others_dr', 'others_dlr',
        'others_cr'] 
     
-    lookbacks = 20;
+    lookbacks = 5;
 
     # df2.insert(loc = 0, column="Low", value=df["Low"])
     # df2.insert(loc = 1, column="High", value=df["High"])
