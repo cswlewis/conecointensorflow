@@ -30,7 +30,7 @@ def predict():
 
     df2 = pd.DataFrame()
 
-    columns_to_normalize = [ 'volume_adi', 'volume_obv', 'volume_cmf', 'volume_fi', 'volume_em',
+    columns_to_normalize = [ 'volume_obv', 'volume_cmf', 'volume_fi', 'volume_em',
        'volume_sma_em', 'volume_vpt', 'volume_vwap', 'volume_mfi',
        'volume_nvi', 'volatility_bbm', 'volatility_bbh', 'volatility_bbl',
        'volatility_bbw', 'volatility_bbp', 'volatility_bbhi',
