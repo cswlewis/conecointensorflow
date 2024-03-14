@@ -7,7 +7,7 @@ import pandas as pd
 app = Flask(__name__)
 
 # Load the saved model
-model = tf.keras.models.load_model('model-gpu-rnn-largeind-6')
+model = tf.keras.models.load_model('model-gpu-rnn-1m-huh')
 
 # Define an API endpoint for predictions
 @app.route('/predict', methods=['POST'])
@@ -56,7 +56,7 @@ def predict():
        'momentum_pvo_hist', 'momentum_kama', 'others_dr', 'others_dlr',
        'others_cr'] 
     
-    lookbacks = 10;
+    lookbacks = 20;
 
     # df2.insert(loc = 0, column="Low", value=df["Low"])
     # df2.insert(loc = 1, column="High", value=df["High"])
