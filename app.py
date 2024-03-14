@@ -99,7 +99,7 @@ def predict():
     # Reshape the input data
     data2 = np.array([df3[col] for col in columns_to_normalize])
     
-    input_data = data2.T.reshape(1, lookbacks, normalised_df.shape[1])
+    input_data = data2.T.reshape(1, lookbacks, 85)
     # Make predictions on the new data
     predictions = model.predict(input_data, batch_size = 1)
     shouldBuy = predictions
