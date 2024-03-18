@@ -105,7 +105,7 @@ def predict():
     shouldBuy = predictions
     print(shouldBuy)
     # Return the predicted labels as a JSON response
-    return jsonify(bool(shouldBuy[0] < 0))
+    return jsonify(bool(shouldBuy[0] > 0))
 
 if __name__ == '__main__':
     app.run(debug=False, host="0.0.0.0", port=3000)
