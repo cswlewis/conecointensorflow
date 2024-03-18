@@ -56,22 +56,19 @@ def gather_and_save_data():
     dataLength = df[columns_to_normalize].shape[0]
     df[columns_to_normalize] = df[columns_to_normalize].astype(np.float32)
     close_values = df["Close"]
+    df3 = (df[columns_to_normalize]-df[columns_to_normalize].mean())/df[columns_to_normalize].std()
     for i in range(lookbacks+minutesToDecideOver+1000, df[columns_to_normalize].shape[0]-lookbacks-minutesToDecideOver):
-        df3 = df[columns_to_normalize].iloc[i-lookbacks-1000:i]
 
         if(i % 200 == 0 or i ==lookbacks+minutesToDecideOver+1000):
             print(i/dataLength*100)
             
-        X[i] = (df3[columns_to_normalize].iloc[1000:] - df3[columns_to_normalize].mean()) / df3[columns_to_normalize].std()
+        X[i] = df3[columns_to_normalize].iloc[i-lookbacks:i]
         
-        if(close_values[i: (i-1)+minutesToDecideOver].sum()  > (close_values[i-minutesToDecideOver:i-1]).sum()):
-            y[i] = True
-        else: 
-            y[i]= False
+        y[i]= (df["Close"].iloc[i]-df["Open"].iloc[i])/df["Open"].iloc[i]
             
     # Save X and y to CSV files
-    np.savetxt('X_data_full50-newest.csv', X.reshape((X.shape[0], -1)), delimiter=',')
-    np.savetxt('y_data_full50-newest.csv', y, delimiter=',')
+    np.savetxt('X_data_full50-newest-20.csv', X.reshape((X.shape[0], -1)), delimiter=',')
+    np.savetxt('y_data_full50-newest-20.csv', y, delimiter=',')
 
 def lr_schedule(epoch):
     initial_lr = 0.0005
@@ -88,7 +85,7 @@ def main():
 
 
 
-    gather_and_save_data()
+    # gather_and_save_data()
     
 
 
@@ -186,8 +183,8 @@ def main():
 
     # # Load X and y from CSV files
     print("Loading .csv data")
-    loaded_X = np.loadtxt('X_data_full50-1.csv', delimiter=',').reshape((-1, lookbacks, numberOfIndicators))
-    loaded_y = np.loadtxt('y_data_full50-1.csv', delimiter=',')
+    loaded_X = np.loadtxt('X_data_full50-newest-20.csv', delimiter=',').reshape((-1, lookbacks, numberOfIndicators))
+    loaded_y = np.loadtxt('y_data_full50-newest-20.csv', delimiter=',')
     print("Loaded .csv data")
     dataLength = loaded_X.shape[0]
 
@@ -211,9 +208,9 @@ def main():
     # test_data_y = test_data_y.reshape((test_data_y.shape[0], ))
 
     
-    train_data_y = tf.cast(train_data_y, tf.bool)
-    # test_data_x = tf.cast(test_data_x, tf.float32)
-    test_data_y = tf.cast(test_data_y, tf.bool)
+    # train_data_y = tf.cast(train_data_y, tf.bool)
+    # # test_data_x = tf.cast(test_data_x, tf.float32)
+    # test_data_y = tf.cast(test_data_y, tf.bool)
 
     model = tf.keras.models.Sequential()    
     inputs=(tf.keras.layers.Input(shape=(lookbacks, numberOfIndicators)))
@@ -283,8 +280,8 @@ def main():
         model = tf.keras.Model(inputs=inputs, outputs=outputs)
     # compile the model
     with tf.device("/device:GPU:0"):
-        model.compile(optimizer=tf.optimizers.Adam(learning_rate = 0.0005), loss="binary_crossentropy",
-                 metrics=[tf.keras.metrics.BinaryAccuracy(), tf.keras.metrics.BinaryCrossentropy(), tf.keras.metrics.MeanSquaredError()])
+        model.compile(optimizer=tf.optimizers.Adam(learning_rate = 0.0005), loss="mean_squared_error",
+                 metrics=[tf.keras.metrics.MeanSquaredError()])
      
     model.summary()
     
@@ -294,10 +291,10 @@ def main():
     # ytest = tf.expand_dims(test_data_y, axis=-1)
     
     path_checkpoint = "model_flat2.h5"
-    es_callback = tf.keras.callbacks.EarlyStopping(monitor="val_binary_accuracy", min_delta=0, patience=10)
+    es_callback = tf.keras.callbacks.EarlyStopping(monitor="val_mean_squared_error", min_delta=0, patience=10)
 
     modelckpt_callback = tf.keras.callbacks.ModelCheckpoint(
-        monitor="val_binary_accuracy",
+        monitor="val_mean_squared_error",
         filepath=path_checkpoint,
         verbose=1,
         save_weights_only=False,
@@ -323,7 +320,7 @@ def main():
         # model.load_weights(path_checkpoint)
         model.save('model-gpu-rnn-1m-huh')
         
-        test_loss,  test_accuracy, blah, month = model.evaluate(test_data_x, test_data_y)
+        test_loss,  test_accuracy = model.evaluate(test_data_x, test_data_y)
         print(f"Test loss: {test_loss:.4f}, Test accuracy: {test_accuracy:.4f}")
     
     
