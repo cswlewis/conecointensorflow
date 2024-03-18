@@ -101,7 +101,6 @@ def predict():
     
     input_data = data2.reshape(1, lookbacks, 85)
     print(input_data[-1])
-    print(input_data[-2])
     # Make predictions on the new data
     predictions = model.predict(input_data, batch_size = 1)
     shouldBuy = predictions
