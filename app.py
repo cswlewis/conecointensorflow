@@ -7,7 +7,7 @@ import pandas as pd
 app = Flask(__name__)
 
 # Load the saved model
-model = tf.keras.models.load_model('model-gpu-rnn-1m-weighted')
+model = tf.keras.models.load_model('model-gpu-rnn-1m-weighted-3')
 
 # Define an API endpoint for predictions
 @app.route('/predict', methods=['POST'])
@@ -104,9 +104,9 @@ def predict():
     # Make predictions on the new data
     predictions = model.predict(input_data, batch_size = 1)
     shouldBuy = predictions
-    print(1-shouldBuy)
+    print(shouldBuy)
     # Return the predicted labels as a JSON response
-    return jsonify(bool((1-shouldBuy[0]) > 0.5))
+    return jsonify(bool((shouldBuy[0]) > 0.5))
 
 if __name__ == '__main__':
     app.run(debug=False, host="0.0.0.0", port=3000)
