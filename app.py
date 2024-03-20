@@ -104,7 +104,7 @@ def predict():
     # Make predictions on the new data
     predictions = model.predict(input_data, batch_size = 1)
     shouldBuy = predictions
-    print(shouldBuy)
+    print(1-shouldBuy)
     # Return the predicted labels as a JSON response
     return jsonify(bool((1-shouldBuy[0]) > 0.5))
 
