@@ -4,16 +4,17 @@ from urllib.parse import uses_fragment
 import numpy as np
 import pandas as pd
 from TickerData import *
+from sklearn.utils import class_weight
 import os
-# from numba import cuda 
+from numba import cuda 
 from tensorflow.keras.callbacks import LearningRateScheduler
 
-# device = cuda.get_current_device()
-# device.reset()
+device = cuda.get_current_device()
+device.reset()
 
 # set the GPU device
-# os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-# os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 import tensorflow as tf
 def gather_and_save_data():
     # Load and prepare the testing data
@@ -52,23 +53,43 @@ def gather_and_save_data():
 
     X = np.zeros((df[columns_to_normalize].shape[0]-lookbacks, lookbacks, df[columns_to_normalize].shape[1]))
     y = np.zeros((df[columns_to_normalize].shape[0]-lookbacks,))
+    values = np.zeros((df[columns_to_normalize].shape[0]-lookbacks,))
 
     dataLength = df[columns_to_normalize].shape[0]
     df[columns_to_normalize] = df[columns_to_normalize].astype(np.float32)
     close_values = df["Close"]
+    open_values = df["Open"]
+    
+    true_values = 0
+    false_values = 0
     df3 = (df[columns_to_normalize]-df[columns_to_normalize].mean())/df[columns_to_normalize].std()
+    
     for i in range(lookbacks+minutesToDecideOver+1000, df[columns_to_normalize].shape[0]-lookbacks-minutesToDecideOver):
 
-        if(i % 200 == 0 or i ==lookbacks+minutesToDecideOver+1000):
+        if(i % 200 == 0 ):
             print(i/dataLength*100)
             
-        X[i] = df3[columns_to_normalize].iloc[i-lookbacks:i]
+        # X[i] = df3[columns_to_normalize].iloc[i-lookbacks:i]
         
-        y[i]= (df["Close"].iloc[i]-df["Open"].iloc[i])/df["Open"].iloc[i]
-            
+        value = (close_values[i-1]) - (close_values[i+1] + close_values[i+2]+ close_values[i+3]+ close_values[i+4]+ close_values[i])/5
+        #((df["Close"].iloc[i]-df["Open"].iloc[i])/df["Open"].iloc[i])*1000# + ((df["Close"].iloc[i+2]-df["Open"].iloc[i+2])/df["Open"].iloc[i+2])*1000 + ((df["Close"].iloc[i+1]-df["Open"].iloc[i+1])/df["Open"].iloc[i+1])*1000 + ((df["Close"].iloc[i+3]-df["Open"].iloc[i+2])/df["Open"].iloc[i+3])*1000 + ((df["Close"].iloc[i+1]-df["Open"].iloc[i+4])/df["Open"].iloc[i+4])*1000 
+        values[i]=abs(value)
+        if(value < 0):
+            y[i] = True
+            true_values +=1
+        else:
+            y[i] = False
+            false_values +=1
     # Save X and y to CSV files
-    np.savetxt('X_data_full50-newest-20.csv', X.reshape((X.shape[0], -1)), delimiter=',')
-    np.savetxt('y_data_full50-newest-20.csv', y, delimiter=',')
+    #
+    # np.savetxt('X_data_full50-12-month.csv', X.reshape((X.shape[0], -1)), delimiter=',')
+    np.savetxt('y_data_full50-12-month.csv', y, delimiter=',')
+    np.savetxt('value_data_full50-12-month.csv', values, delimiter=',')
+    print("True/False")
+    print(true_values)
+    print(false_values)
+    print(" ----------       ")
+
 
 def lr_schedule(epoch):
     initial_lr = 0.0005
@@ -85,7 +106,7 @@ def main():
 
 
 
-    # gather_and_save_data()
+    gather_and_save_data()
     
 
 
@@ -183,52 +204,71 @@ def main():
 
     # # Load X and y from CSV files
     print("Loading .csv data")
-    loaded_X = np.loadtxt('X_data_full50-newest-20.csv', delimiter=',').reshape((-1, lookbacks, numberOfIndicators))
-    loaded_y = np.loadtxt('y_data_full50-newest-20.csv', delimiter=',')
+    loaded_X = np.loadtxt('X_data_full50-1.csv', delimiter=',').reshape((-1, lookbacks, numberOfIndicators))
+    loaded_y = np.loadtxt('y_data_full50-12-month.csv', delimiter=',')
+    sample_weights = np.loadtxt('value_data_full50-12-month.csv', delimiter=',')
     print("Loaded .csv data")
     dataLength = loaded_X.shape[0]
 
+    print("datalength")
     print(dataLength)
+    print("loaded_y")
+    
     print(len(loaded_y))
+    print("loaded_x")
+    
+    print(loaded_X.shape[0])
 
     # Split the data into testing, validation, and testing sets
-    train_data_x = loaded_X[1:dataLength-20000, :]
-    train_data_y = loaded_y[1:dataLength-20000]
-    
+    train_data_x = loaded_X[0:dataLength-20000, :]
+    train_data_y = loaded_y[0:dataLength-20000]
+    train_sample_weights = sample_weights[0:dataLength-20000]
 
     test_data_x = loaded_X[dataLength-20000:, :]
     test_data_y = loaded_y[dataLength-20000:]
+    test_sample_weights = sample_weights[dataLength-20000:]
     
     
     train_data_x = train_data_x.reshape(( -1, lookbacks, numberOfIndicators))
     # train_data_y = train_data_y.reshape((loaded_y.shape[0], ))
     print(train_data_x[-1])
     print(train_data_y[-1])
-    # test_data_x = test_data_x.reshape((test_data_x.shape[0], test_data_x.shape[1],test_data_x.shape[2], 1 ))
-    # test_data_y = test_data_y.reshape((test_data_y.shape[0], ))
+    test_data_x = test_data_x.reshape((test_data_x.shape[0], test_data_x.shape[1],test_data_x.shape[2], 1 ))
+    test_data_y = test_data_y.reshape((test_data_y.shape[0], ))
 
     
-    # train_data_y = tf.cast(train_data_y, tf.bool)
-    # # test_data_x = tf.cast(test_data_x, tf.float32)
-    # test_data_y = tf.cast(test_data_y, tf.bool)
+    train_data_y = tf.cast(train_data_y, tf.bool)
+    # test_data_x = tf.cast(test_data_x, tf.float32)
+    test_data_y = tf.cast(test_data_y, tf.bool)
+    # Convert TensorFlow tensor to NumPy array
+    train_data_y_numpy = train_data_y.numpy()
+    test_data_y_numpy = test_data_y.numpy()
+
+    # Now use train_data_y_numpy in np.unique() and set()
+    weights = class_weight.compute_class_weight(class_weight="balanced", classes=np.unique(train_data_y_numpy), y=train_data_y_numpy)
+    weights_test = class_weight.compute_class_weight(class_weight="balanced", classes=np.unique(test_data_y_numpy), y=test_data_y_numpy)
+    
+    # Convert class weights to a dictionary
+    class_weight_dict = dict(enumerate(weights))
+    # class_weight_dict_test = dict(enumerate(weights))
 
     model = tf.keras.models.Sequential()    
-    inputs=(tf.keras.layers.Input(shape=(lookbacks, numberOfIndicators)))
+    inputs=(tf.keras.layers.Input(shape=(lookbacks, numberOfIndicators, 1)))
 
     # # Apply 1D convolutions along the time dimension using TimeDistributed
     # cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Conv1D(32, kernel_size=3, activation='relu'))(inputs)
     # cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dropout(0.7))(cnn_layer)
     # cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Conv1D(32, kernel_size=2, activation='relu'))(cnn_layer)
     # cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dropout(0.7))(cnn_layer)
-    # cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Conv1D(32, kernel_size=3, activation='relu'))(cnn_layer)
-    # cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dropout(0.7))(cnn_layer)
     # cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Flatten())(inputs)
+
+    cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Conv1D(32, kernel_size=2, activation='linear'))(inputs)
+    cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.BatchNormalization())(cnn_layer)  # Add BatchNormalization layer
+    cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dropout(0.2))(cnn_layer)
+    cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Flatten())(cnn_layer)
+    rnn_layer = tf.keras.layers.SimpleRNN(8, activation='linear', return_sequences=False)(cnn_layer)
     # Apply SimpleRNN
-    rnn_layer = tf.keras.layers.SimpleRNN(32, activation='relu', return_sequences=True)(inputs)
-    rnn_layer = tf.keras.layers.Dropout(0.5)(rnn_layer)
-    
-    rnn_layer = tf.keras.layers.SimpleRNN(16, activation='relu', return_sequences=False)(rnn_layer)
-    rnn_layer = tf.keras.layers.Dropout(0.5)(rnn_layer)    
+
 
     # rnn_layer = tf.keras.layers.SimpleRNN(8, activation='relu', return_sequences=True)(rnn_layer)
     # rnn_layer = tf.keras.layers.Dropout(0.3)(rnn_layer)
@@ -241,6 +281,7 @@ def main():
 
     # # Output layer
     # rnn_layer = tf.keras.layers.Dense(8, activation='sigmoid')(rnn_layer)
+    # outputs = tf.keras.layers.Dense(2, activation='softmax')(rnn_layer)
     outputs = tf.keras.layers.Dense(1, activation='sigmoid')(rnn_layer)
 
     # model = tf.keras.models.Sequential()
@@ -280,8 +321,9 @@ def main():
         model = tf.keras.Model(inputs=inputs, outputs=outputs)
     # compile the model
     with tf.device("/device:GPU:0"):
-        model.compile(optimizer=tf.optimizers.Adam(learning_rate = 0.0005), loss="mean_squared_error",
-                 metrics=[tf.keras.metrics.MeanSquaredError()])
+        model.compile(optimizer=tf.optimizers.Adam(learning_rate = 0.0005), loss="binary_crossentropy",
+                 metrics=[tf.keras.metrics.BinaryCrossentropy(), tf.keras.metrics.BinaryAccuracy()],
+                 weighted_metrics=[tf.keras.metrics.BinaryCrossentropy(), tf.keras.metrics.BinaryAccuracy()])
      
     model.summary()
     
@@ -291,10 +333,10 @@ def main():
     # ytest = tf.expand_dims(test_data_y, axis=-1)
     
     path_checkpoint = "model_flat2.h5"
-    es_callback = tf.keras.callbacks.EarlyStopping(monitor="val_mean_squared_error", min_delta=0, patience=10)
+    es_callback = tf.keras.callbacks.EarlyStopping(monitor="val_weighted_binary_accuracy", min_delta=0, patience=15)
 
     modelckpt_callback = tf.keras.callbacks.ModelCheckpoint(
-        monitor="val_mean_squared_error",
+        monitor="val_weighted_binary_accuracy",
         filepath=path_checkpoint,
         verbose=1,
         save_weights_only=False,
@@ -308,19 +350,21 @@ def main():
         history = model.fit(
             train_data_x,
             train_data_y,
-            batch_size=512,
+            batch_size=128,
             epochs=2000,
             validation_split=0.1,
             validation_freq=1,
             callbacks=[modelckpt_callback, es_callback, lr_scheduler],
-            validation_batch_size = 512,
+            validation_batch_size = 128,
             shuffle=True, 
-            use_multiprocessing = True
+            use_multiprocessing = True,
+            class_weight = class_weight_dict,
         )
         # model.load_weights(path_checkpoint)
-        model.save('model-gpu-rnn-1m-huh')
+        model.save('model-gpu-rnn-1m-weighted-3')
         
-        test_loss,  test_accuracy = model.evaluate(test_data_x, test_data_y)
+        test_loss,  test_accuracy, blah, ast, asd = model.evaluate(test_data_x, test_data_y, sample_weight=test_sample_weights)
+
         print(f"Test loss: {test_loss:.4f}, Test accuracy: {test_accuracy:.4f}")
     
     
