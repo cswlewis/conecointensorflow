@@ -92,8 +92,8 @@ def gather_and_save_data():
 
 
 def lr_schedule(epoch):
-    initial_lr = 0.0005
-    decay_factor = 0.9
+    initial_lr = 0.001
+    decay_factor = 0.95
     decay_epochs = 3
     lr = initial_lr * (decay_factor ** (epoch // decay_epochs))
     return lr
@@ -262,26 +262,19 @@ def main():
     # cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dropout(0.7))(cnn_layer)
     # cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Flatten())(inputs)
 
-    cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Conv1D(32, kernel_size=2, activation='linear'))(inputs)
+    cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Conv1D(16, kernel_size=3, activation='relu', kernel_regularizer=tf.keras.regularizers.l1(0.01)))(inputs)
+    cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.BatchNormalization())(cnn_layer)  # Add BatchNormalization layer
+    cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dropout(0.2))(cnn_layer)
+    cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Conv1D(8, kernel_size=3, activation='relu', kernel_regularizer=tf.keras.regularizers.l1(0.01)))(cnn_layer)
+    cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.BatchNormalization())(cnn_layer)  # Add BatchNormalization layer
+    cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dropout(0.2))(cnn_layer)
+    cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Conv1D(4, kernel_size=3, activation='relu', kernel_regularizer=tf.keras.regularizers.l1(0.01)))(cnn_layer)
     cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.BatchNormalization())(cnn_layer)  # Add BatchNormalization layer
     cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dropout(0.2))(cnn_layer)
     cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Flatten())(cnn_layer)
-    rnn_layer = tf.keras.layers.SimpleRNN(8, activation='linear', return_sequences=False)(cnn_layer)
-    # Apply SimpleRNN
+    rnn_layer = tf.keras.layers.SimpleRNN(8, activation='relu', kernel_regularizer=tf.keras.regularizers.l1(0.01), return_sequences=False)(cnn_layer)
+    rnn_layer = tf.keras.layers.BatchNormalization()(rnn_layer)
 
-
-    # rnn_layer = tf.keras.layers.SimpleRNN(8, activation='relu', return_sequences=True)(rnn_layer)
-    # rnn_layer = tf.keras.layers.Dropout(0.3)(rnn_layer)
-    # rnn_layer = tf.keras.layers.SimpleRNN(4, activation='relu')(rnn_layer)
-    # rnn_layer = tf.keras.layers.Dropout(0.3)(rnn_layer)
-    # rnn_layer = tf.keras.layers.Flatten()(rnn_layer)
-      
-    # cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Conv1D(128, kernel_size=3, activation='relu'))(rnn_layer)
-    # cnn_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dropout(0.3))(cnn_layer)
-
-    # # Output layer
-    # rnn_layer = tf.keras.layers.Dense(8, activation='sigmoid')(rnn_layer)
-    # outputs = tf.keras.layers.Dense(2, activation='softmax')(rnn_layer)
     outputs = tf.keras.layers.Dense(1, activation='sigmoid')(rnn_layer)
 
     # model = tf.keras.models.Sequential()
@@ -321,7 +314,7 @@ def main():
         model = tf.keras.Model(inputs=inputs, outputs=outputs)
     # compile the model
     with tf.device("/device:GPU:0"):
-        model.compile(optimizer=tf.optimizers.Adam(learning_rate = 0.0005), loss="binary_crossentropy",
+        model.compile(optimizer=tf.optimizers.Adam(learning_rate = 0.001), loss="binary_crossentropy",
                  metrics=[tf.keras.metrics.BinaryCrossentropy(), tf.keras.metrics.BinaryAccuracy()],
                  weighted_metrics=[tf.keras.metrics.BinaryCrossentropy(), tf.keras.metrics.BinaryAccuracy()])
      
@@ -350,18 +343,19 @@ def main():
         history = model.fit(
             train_data_x,
             train_data_y,
-            batch_size=128,
+            batch_size=512,
             epochs=2000,
-            validation_split=0.1,
+            validation_split=0.2,
             validation_freq=1,
             callbacks=[modelckpt_callback, es_callback, lr_scheduler],
-            validation_batch_size = 128,
+            validation_batch_size = 512,
             shuffle=True, 
             use_multiprocessing = True,
             class_weight = class_weight_dict,
+            verbose=2
         )
         # model.load_weights(path_checkpoint)
-        model.save('model-gpu-rnn-1m-weighted-3')
+        model.save('model-gpu-rnn-1m-weighted-4')
         
         test_loss,  test_accuracy, blah, ast, asd = model.evaluate(test_data_x, test_data_y, sample_weight=test_sample_weights)
 
