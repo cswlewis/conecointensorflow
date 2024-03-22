@@ -7,7 +7,7 @@ import pandas as pd
 app = Flask(__name__)
 
 # Load the saved model
-model = tf.keras.models.load_model('model-gpu-rnn-1m-weighted-3')
+model = tf.keras.models.load_model('model-gpu-rnn-1m-weighted-4')
 
 # Define an API endpoint for predictions
 @app.route('/predict', methods=['POST'])
